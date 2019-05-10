@@ -31,6 +31,7 @@ function getChartPluginSize(str) {
     var self = this;
     request.done(function(data){
       station["stations"] = data["stations"]
+      station['ids'] = data['stations']
     })
   }
   
@@ -166,6 +167,27 @@ function getChartPluginSize(str) {
 
 /**Parte para renderizacion de Datos de estaciones meteorologicas */
 
+function download(variable){
+  var url = "/series/measurements/download/?variable="
+  var variable_str = variable.id + "["
+  var length = variable.stations.length - 1;
+  for(var i=0;i< length;i++){
+    var station = variable.stations[i];
+    variable_str += station.id + "," 
+  }
+  var station = variable.stations[length];
+  variable_str += station.id + "]"
+  url += variable_str;
+
+  if(variable["ini_date"]){
+    url = url + "&ini_date=" + variable["ini_date"];
+  }
+  if(variable["end_date"]){
+    url = url + "&end_date=" + variable["end_date"];
+  }
+  
+  return url;
+}
 /*
 Realiza una peticion ajax para 
 obetenr los metadados de una variable*/
@@ -203,6 +225,7 @@ function getMeasurements(variable,container){
   var station = {}
 	for(var i=0; i<stations.length; i++){
     station.id = stations[i]
+    station.name = stations[i]
 		getStationMeasurements(variable,station,container);
 	}
 }
@@ -228,17 +251,22 @@ function getStationMeasurements(variable,station,container){
   url+="&offset="+this.offset
 	var request = $.get(url);
   station["state"]="loading";
+  console.log(station["id"])
+  variable["current_st"] = station["id"]
 	request.done(function(response){
+   
 		var measurements = response["measurements"];
 		// se actualiza
 		var full_count = response["full_count"];
 		self.max_offset = full_count - self.limit;
 		if(full_count>0){
       assingMeasurements(station,measurements);
-                            	// dibuja el plot
-                            	addTrace(variable,station,container);
+      console.log(variable.current_st)      
+      // dibuja el plot
+      addTrace(variable,station,container);              	
 		}
-	});
+  });
+  
 	request.fail(function(response){
     station["state"]="failed";
 
@@ -250,7 +278,7 @@ function getStationMeasurements(variable,station,container){
 Asigna la serie de tiempo a la estacion
 */
 function assingMeasurements(station,measurements){
-  console.log(station["id"])
+
   station["x_values"] = [];
   station["y_values"] = [];
 	for(var i=0;i<measurements.length; i++){
@@ -307,7 +335,7 @@ function addTrace(variable,station,container){
 		x:station["x_values"],
 		y:station["y_values"],
 		type: 'scatter',
-		name: 'Estacion '+station['id'],
+		name: 'Estacion '+variable.current_st,
 		line:{color:station["color"]},
 		visible:station["visible"]
 	};
