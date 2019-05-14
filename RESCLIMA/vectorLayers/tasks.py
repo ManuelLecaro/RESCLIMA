@@ -34,6 +34,7 @@ def import_vector_layer(vectorlayer_params):
 	try:
 		path = join(temp_dir,vectorlayer_name+".shp")
 		datasource = ogr.Open(path)
+		print(datasource)
 		layer = datasource.GetLayer(0)
 	except Exception as e:
 		return updateResult(errorMsg = "La capa vectorial no es válida " + str(e),

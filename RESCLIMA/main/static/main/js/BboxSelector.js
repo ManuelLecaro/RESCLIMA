@@ -28,6 +28,15 @@ var BboxSelector = function(container,callback){
 	menu_container.appendChild(instruction);
 	menu_container.appendChild(newAreaBtn);
 
+	var newLocatPosBtn = document.createElement("input");
+	newLocatPosBtn.type = "button";
+	newLocatPosBtn.id = "bboxButton"
+	newLocatPosBtn.value = unescape("Coordenadas Locales");
+	newLocatPosBtn.addEventListener("click",function(event){
+		handlePermission();
+	});
+	menu_container.appendChild(newLocatPosBtn);
+
 	var map_container = document.createElement("div");
 	map_container.style.width = "700px";
 	map_container.style.display="inline-block";
@@ -138,6 +147,33 @@ var BboxSelector = function(container,callback){
 			b = bounds.clone().transform(map.getProjectionObject(), new OpenLayers.Projection("EPSG:4326"))
 			callback(b)
 		}
+	}
+
+	var geoSettings = {
+		enableHighAccuracy: true,
+		timeout: 5000,
+		maximumAge: 0
+	};
+
+	function setInitLocation(position){
+		var crds = position.coords;
+		var zoom = 10;
+		var lonLat = new OpenLayers.LonLat(crds.longitude,crds.latitude).transform(
+			new OpenLayers.Projection("EPSG:4326"), map.getProjectionObject());
+		map.setCenter(lonLat, zoom);
+	}
+	function error(err) {
+		console.warn('ERROR(' + err.code + '): ' + err.message);
+	  };
+
+	function handlePermission() {
+		navigator.permissions.query({name:'geolocation'}).then(function(result) {
+		if (result.state == 'prompt' || result.state == 'granted' ) {
+			var position = navigator.geolocation.getCurrentPosition(setInitLocation,error,geoSettings);
+		  } else if (result.state == 'denied') {
+			geoBtn.style.display = 'inline';
+		  }
+		});
 	}
 }
 

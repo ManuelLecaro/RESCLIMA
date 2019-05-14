@@ -12,8 +12,8 @@ class Layer(FilterSearchTable):
 	srs_wkt = models.TextField(max_length= 500)
 	bbox = models.PolygonField(srid=4326,null=True)
 	
-	file_path = models.CharField(max_length=255)
-	file_name = models.CharField(max_length=255)
+	file_path = models.CharField(max_length=255, default='')
+	file_name = models.CharField(max_length=255, default='')
 
 	type = models.CharField(max_length=10)
 	author = models.CharField(max_length=50, null=True)
